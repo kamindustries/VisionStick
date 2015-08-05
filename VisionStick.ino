@@ -22,6 +22,7 @@ int gLum = 96;
 int gSat = 255;
 uint8_t gHue = 0; // rotating "base color" used by both patterns
 int anim_speed = 10;
+int interval_width = 100;
 int rainbow_anim = 5;
 int toggle_pause = 0;
 int toggle_cycle = 0;
@@ -30,7 +31,7 @@ int toggle_sync = 0;
 int toggle_interval = 0;
 
 int pattern_num = 0;
-int num_patterns = 3;
+int num_patterns = 4;
 float t[3]; //current timestep
 float d_t[3]; //previous timestep
 
@@ -86,6 +87,9 @@ void loop()
 //    drawPingFromCenter(right_start, num_leds_strip, 2);
 //    UpdateLEDS();
 //    fadeToBlackBy( leds, num_leds, 30);  
+  }
+  else if (pattern_num == 3) {
+    drawPingCenter(left_start, num_leds_strip, 0);
   }
 
   EVERY_N_MILLISECONDS( 50 ) {

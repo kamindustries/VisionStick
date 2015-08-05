@@ -51,7 +51,7 @@ void Interaction(){
   if(button8.uniquePress()){
     // variable, dir, increment, safe increment, min, max, pad neg, pad pos
     anim_speed = IncrementInt(anim_speed, 1, 5, 1, 1, 100, 10, 90);
-  } 
+  }
  
 }
 
