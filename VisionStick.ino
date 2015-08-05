@@ -10,6 +10,7 @@
 #define CLK_PIN   12
 #define LED_TYPE    APA102
 #define COLOR_ORDER BRG
+#define FRAMES_PER_SECOND  60
 
 const int num_leds = 144;
 const int num_leds_strip = 48;
@@ -17,13 +18,21 @@ CRGB leds[num_leds];
 
 int led_ctrl[num_leds];
 
-#define BRIGHTNESS         96
-#define FRAMES_PER_SECOND  60
+int gLum = 96;
+int gSat = 255;
+uint8_t gHue = 0; // rotating "base color" used by both patterns
+int anim_speed = 10;
+int rainbow_anim = 5;
+int toggle_pause = 0;
+int toggle_cycle = 0;
+int toggle_chroma = 0;
+int toggle_sync = 0;
+int toggle_interval = 0;
 
 int pattern_num = 0;
-uint8_t gHue = 0; // rotating "base color" used by both patterns
-float p1 = 0;
-float p1_b = 0;
+int num_patterns = 3;
+float t[3]; //current timestep
+float d_t[3]; //previous timestep
 
 // Buttons
 Button button1 = Button(10, BUTTON_PULLUP_INTERNAL, true, 80);
@@ -45,7 +54,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, num_leds).setCorrection(TypicalLEDStrip);
 
   // set master brightness control
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(gLum);
 
   for (int i = 0; i < num_leds; i++){
     led_ctrl[i] = i;
@@ -57,19 +66,7 @@ void setup() {
 //////////////////////////////////////////////////
 void loop()
 {
-//  if(button1.uniquePress()){
-  if(button1.uniquePress() ||
-  button2.uniquePress() ||
-  button3.uniquePress() ||
-  button4.uniquePress() ||
-  button5.uniquePress() ||
-  button6.uniquePress() ||
-  button7.uniquePress() ||
-  button8.uniquePress() ){
-    pattern_num++;
-    if (pattern_num >= 3) pattern_num = 0;
-    ResetVars();
-  }
+  Interaction();
   
   int left_start = 0;
   int mid_start = num_leds/3;
@@ -84,17 +81,17 @@ void loop()
     UpdateLEDS();
   }
   else if (pattern_num == 2) {
-    drawPingFromCenter(left_start, num_leds_strip, 0);
+    drawPingLength(left_start, num_leds_strip, 0);
 //    drawPingFromCenter(mid_start, num_leds_strip, 1);
 //    drawPingFromCenter(right_start, num_leds_strip, 2);
 //    UpdateLEDS();
 //    fadeToBlackBy( leds, num_leds, 30);  
   }
-  
-  // do some periodic updates
-  EVERY_N_MILLISECONDS( 50 ) { 
-    gHue--; 
+
+  EVERY_N_MILLISECONDS( 50 ) {
+    if (toggle_pause == 0) gHue -= ((anim_speed+1)/2);
   }
+
 }
 
 
