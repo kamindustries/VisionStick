@@ -11,36 +11,68 @@
 #define LED_TYPE    APA102
 #define COLOR_ORDER BRG
 #define FRAMES_PER_SECOND  60
+#define COOLING  75
+#define SPARKING 120
 
-const int num_leds = 144;
-const int num_leds_strip = 48;
+const uint8_t num_leds = 144;
+const uint8_t num_leds_strip = 48;
 CRGB leds[num_leds];
+CRGBPalette16 gPal;
 
-int led_ctrl[num_leds];
-
-int gLum = 96;
-int gSat = 255;
+uint8_t gLum = 96;
+uint8_t gSat = 255;
 uint8_t gHue = 0; // rotating "base color" used by both patterns
-int anim_speed = 10;
-int interval_width = 100;
-int rainbow_anim = 5;
-int toggle_pause = 0;
-int toggle_cycle = 0;
-int toggle_chroma = 0;
-int toggle_sync = 0;
-int toggle_interval = 0;
+uint8_t strip_ctrl[3];
+uint8_t strip_start[3];
 
-int pattern_num = 0;
-int num_patterns = 4;
+uint8_t anim_speed = 10;
+uint8_t interval_width = 100;
+uint8_t rainbow_anim = 5;
+uint8_t toggle_pause = 0;
+uint8_t toggle_autoCycle = 0;
+uint8_t toggle_sync = 0;
+
+uint8_t pattern_num = 0;
+uint8_t num_patterns = 5;
+
+
 float t[3]; //current timestep
 float d_t[3]; //previous timestep
+
+// Param for different pixel layouts
+#define kMatrixSerpentineLayout  true
+
+// x,y, & time values
+uint32_t noise_x,noise_y,noise_v_time,noise_hue_time,noise_hxy;
+
+// Play with the values of the variables below and see what kinds of effects they
+// have!  More octaves will make things slower.
+// how many octaves to use for the brightness and hue functions
+uint8_t noise_octaves=2;
+uint8_t noise_hue_octaves=4;
+
+// the 'distance' between points on the x and y axis
+int noise_yscale=57771;
+int noise_xscale=57771;
+
+// the 'distance' between x/y points for the hue noise
+int noise_hue_scale_x=10;
+int noise_hue_scale_y=10;
+
+// how fast we move through time & hue noise
+int noise_time_speed=1111;
+int noise_hue_speed=31;
+
+// adjust these values to move along the x or y axis between frames
+int noise_x_speed=311;
+int noise_y_speed=1111;
 
 // Buttons
 Button button1 = Button(10, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button2 = Button(9, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button3 = Button(8, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button4 = Button(7, BUTTON_PULLUP_INTERNAL, true, 80);
-Button button5 = Button(6, BUTTON_PULLUP_INTERNAL, true, 80);
+//Button button5 = Button(6, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button6 = Button(5, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button7 = Button(4, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button8 = Button(3, BUTTON_PULLUP_INTERNAL, true, 80);
@@ -57,45 +89,31 @@ void setup() {
   // set master brightness control
   FastLED.setBrightness(gLum);
 
-  for (int i = 0; i < num_leds; i++){
-    led_ctrl[i] = i;
+  // initialize values
+  for (int i = 0; i < 3; i++){
+    strip_ctrl[i] = random8(55);
+    strip_start[i] = num_leds_strip*i;
+    t[i] = 0;
+    d_t[i] = 0;
   }
+
+  // NOISE STUFF
+  //
+  // initialize the x/y and time values
+  random16_set_seed(8934);
+//  random16_add_entropy(analogRead(3));
+
+  noise_hxy = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
+  noise_x = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
+  noise_y = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
+  noise_v_time = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
+  noise_hue_time = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
+
+  // HEAT STUFF
+  // gPal = HeatColors_p;
+ // gPal = CRGBPalette16( CRGB::Blue, CRGB::Red, CRGB::Yellow, CRGB::White);
+ // gPal = CRGBPalette16( CRGB::Black, CRGB::Red, CRGB::Yellow, CRGB::White);
+ // gPal = CRGBPalette16( CRGB::Black, CRGB::Blue, CRGB::Aqua,  CRGB::White);  
+ // gPal = CRGBPalette16( CRGB::Black, CRGB::Red, CRGB::White);
 }
-
-//////////////////////////////////////////////////
-// A N I M A T E
-//////////////////////////////////////////////////
-void loop()
-{
-  Interaction();
-  
-  int left_start = 0;
-  int mid_start = num_leds/3;
-  int right_start = mid_start*2;
-
-  if (pattern_num == 0) {
-    drawConfetti(left_start, num_leds);
-    UpdateLEDS();
-  }
-  else if (pattern_num == 1){
-    drawRainbow(left_start, num_leds);
-    UpdateLEDS();
-  }
-  else if (pattern_num == 2) {
-    drawPingLength(left_start, num_leds_strip, 0);
-//    drawPingFromCenter(mid_start, num_leds_strip, 1);
-//    drawPingFromCenter(right_start, num_leds_strip, 2);
-//    UpdateLEDS();
-//    fadeToBlackBy( leds, num_leds, 30);  
-  }
-  else if (pattern_num == 3) {
-    drawPingCenter(left_start, num_leds_strip, 0);
-  }
-
-  EVERY_N_MILLISECONDS( 50 ) {
-    if (toggle_pause == 0) gHue -= ((anim_speed+1)/2);
-  }
-
-}
-
 
