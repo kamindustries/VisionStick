@@ -11,6 +11,28 @@ void UpdateLEDS(){
 }
 
 //////////////////////////////////////////////////
+// Presets
+//////////////////////////////////////////////////
+void Preset(int _num){
+  // low/chill
+  if (_num == 0){
+    gLum = 50;
+    gSat = 220;
+    anim_speed = 10;
+    interval_width = 10;
+    ResetVars();
+  }
+  // high/woah
+  if (_num == 1){
+    gLum = 235;
+    gSat = 255;
+    anim_speed = 95;
+    interval_width = 90;
+    ResetVars();
+  }
+}
+
+//////////////////////////////////////////////////
 // Reset Vars
 //////////////////////////////////////////////////
 void ResetVars(){
@@ -18,6 +40,7 @@ void ResetVars(){
     t[i] = 0;
     d_t[i] = 0;
     strip_ctrl[i] = 55;
+    rand_message_interval = 30000;
   }
 }
 
@@ -48,3 +71,14 @@ int IncrementInt(int _var, bool _dir, int _inc, int _safe_inc, int _min, int _ma
   return _var;
 }
 
+//////////////////////////////////////////////////
+// Flip position for snake layout
+//////////////////////////////////////////////////
+int FlipPosition(int _var){
+  int output = _var;
+  if (_var >= strip_start[1] && _var < strip_start[2]) {
+    output = map(_var, strip_start[1], strip_start[2], strip_start[2], strip_start[1]);
+    output--;
+  }
+  return output;
+}

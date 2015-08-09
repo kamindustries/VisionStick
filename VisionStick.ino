@@ -1,5 +1,6 @@
 #include "FastLED.h"
 #include <Button.h>
+#include "Agent.h"
 
 
 #if FASTLED_VERSION < 3001000
@@ -21,20 +22,23 @@ CRGBPalette16 gPal;
 
 uint8_t gLum = 96;
 uint8_t gSat = 255;
-uint8_t gHue = 0; // rotating "base color" used by both patterns
+int gHue = 0; // rotating "base color" used by both patterns
 uint8_t strip_ctrl[3];
 uint8_t strip_start[3];
 
 uint8_t anim_speed = 10;
-uint8_t interval_width = 100;
+uint8_t interval_width = 10;
 uint8_t rainbow_anim = 5;
 uint8_t toggle_pause = 0;
 uint8_t toggle_autoCycle = 0;
+uint8_t toggle_blastMode = 0;
 uint8_t toggle_sync = 0;
+uint8_t presetNum = 0;
 
-uint8_t pattern_num = 0;
-uint8_t num_patterns = 5;
-
+int pattern_num = 0;
+uint8_t num_patterns = 8;
+uint8_t secret_message[27];
+int rand_message_interval = 30000;
 
 float t[3]; //current timestep
 float d_t[3]; //previous timestep
@@ -77,6 +81,8 @@ Button button6 = Button(5, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button7 = Button(4, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button8 = Button(3, BUTTON_PULLUP_INTERNAL, true, 80);
 
+Agent ping[10];
+
 //////////////////////////////////////////////////
 // S E T U P
 //////////////////////////////////////////////////
@@ -98,22 +104,22 @@ void setup() {
   }
 
   // NOISE STUFF
-  //
   // initialize the x/y and time values
   random16_set_seed(8934);
-//  random16_add_entropy(analogRead(3));
-
   noise_hxy = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
   noise_x = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
   noise_y = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
   noise_v_time = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
   noise_hue_time = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();
 
-  // HEAT STUFF
-  // gPal = HeatColors_p;
- // gPal = CRGBPalette16( CRGB::Blue, CRGB::Red, CRGB::Yellow, CRGB::White);
- // gPal = CRGBPalette16( CRGB::Black, CRGB::Red, CRGB::Yellow, CRGB::White);
- // gPal = CRGBPalette16( CRGB::Black, CRGB::Blue, CRGB::Aqua,  CRGB::White);  
- // gPal = CRGBPalette16( CRGB::Black, CRGB::Red, CRGB::White);
+  // SECRET MESSAGE
+  for (int i = 0; i < 27; i++){
+    if (i==0 || i==2 || i==3 || i==4 || i==6 || i==8 || i==12 || i==14 || i==16 || 
+        i==20 || i==21 || i==22 || i==24 || i==26) {
+      secret_message[i] = 1;
+    }
+    else secret_message[i] = 0;
+  }
+
 }
 
