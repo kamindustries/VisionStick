@@ -17,14 +17,14 @@
 
 const uint8_t num_leds = 144;
 const uint8_t num_leds_strip = 48;
-const uint8_t num_pings = 8;
+const uint8_t num_pings = 7;
 CRGB leds[num_leds];
 Agent ping[num_pings];
 
 uint8_t gLum = 96;
 uint8_t gSat = 255;
 int gHue = 0; // rotating "base color" used by both patterns
-uint8_t strip_ctrl[3];
+// uint8_t strip_ctrl[3];
 uint8_t strip_start[3];
 
 uint8_t anim_speed = 10;
@@ -37,7 +37,7 @@ uint8_t toggle_sync = 0;
 uint8_t presetNum = 0;
 
 int pattern_num = 0;
-uint8_t num_patterns = 8;
+uint8_t num_patterns = 7;
 uint8_t secret_message[27];
 int rand_message_interval = 30000;
 
@@ -97,7 +97,7 @@ void setup() {
 
   // initialize values
   for (int i = 0; i < 3; i++){
-    strip_ctrl[i] = random8(55);
+    // strip_ctrl[i] = random8(55);
     strip_start[i] = num_leds_strip*i;
     t[i] = 0;
     d_t[i] = 0;

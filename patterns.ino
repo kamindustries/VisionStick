@@ -78,22 +78,26 @@ void drawConfetti(int _start_pixel) {
 // 1. Rainbow
 //////////////////////////////////////////////////
 void drawRainbow(int _start_pixel) {
-  float wave = sin((float)gHue/255);
-  wave *= 5;
-  wave *= (float)(anim_speed/100);
-  float width_f = map(float(interval_width), 1, 100, 0., 1.);
+
+  float freq = float(interval_width)/100.;
+  float max_spd = map(freq, .01, 1., .01, .9);
+  max_spd = 1.-max_spd;
+  float spd = (float(anim_speed)/1000.) * max_spd;
+  float wave = sin((float(gHue)/255.) + (float(gHue)*spd));
+
+  // broad wave controls the slow directional changes
+  float broad_spd = spd;
+  broad_spd *= 0.02;
+  float broad_wave = sin(freq + (float(gHue)*broad_spd));
 
     for (int i = 0; i < num_leds; i++){
       int pos = i + _start_pixel;
-      float width = map(float(interval_width), 0, 100, .01, 6.);
 
-      // int hue_offset = random8(i * width_f);
-      int hue_offset = random8(60 * width_f);
-
-      int hue = map(i, 0, num_leds, 0, 255);
-      hue = (hue * (width+wave)) + gHue + hue_offset;
-      uint8_t sat_wave = cubicwave8(i + (gHue/width));
-      uint8_t sat = gSat - (cubicwave8(((i) * (width+sat_wave)) + gHue)/3);
+      float i_f = float(i);
+      float hue = (sin((i_f * freq * 0.5 * broad_wave) - (float(gHue)*spd))+1.)*128.;
+      float sat = (sin(((i_f+92) * freq * 2.2 * broad_wave) - (float(gHue)*spd*0.65))+1.)*gSat/2.;
+      sat += 100;
+      if (sat > 255) sat = 255;
 
       pos = FlipPosition(pos);
       leds[pos] = CHSV(hue, sat, 255);
@@ -102,110 +106,69 @@ void drawRainbow(int _start_pixel) {
 }
 
 //////////////////////////////////////////////////
-// 2. PingLength
+// 2. Agent Ping Length
 //////////////////////////////////////////////////
-void drawPingLength(int _start_pixel, int _ID, int _length){
+void drawAgentLength(){
 
-    float s = (float)2/(104-anim_speed);
-    if (s > .08) s = .08;  // have to clamp the value...why?
-    t[_ID] += EaseIn(t[_ID], _length, s); // easing in +1 or 2 extra looks nicer imo
-    
-    int pos = _start_pixel + int(t[_ID]);
-    int pos_b = _start_pixel + int(d_t[_ID]);
-    int dif = pos - pos_b;
+  int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
+  fadeToBlackBy(leds, num_leds, max_fade_spd);
 
-    // reverse for strip 2
-    pos = FlipPosition(pos);
-    pos_b = FlipPosition(pos_b);
-    if (_ID == 1) dif = pos_b - pos;
+  int max_pings = map(interval_width, 1, 100, 3, 8);
+  for (int i = 0; i < max_pings; i++){
+    ping[i].draw(leds, anim_speed, interval_width, gHue, gSat, -1, toggle_sync);
+  }
 
-    // set leading pixel
-    leds[pos] = CHSV(gHue,gSat/2,255);
-    
-    random16_add_entropy(random());
-    int rand_hue1 = gHue + random8(10);
-
-    if (dif > 0) {      // light up skipped pixels
-      for (int i = 0; i < dif; i++) {
-        int rx = random8(20);
-        if (_ID==1) leds[pos+i] = CHSV(gHue+rx,gSat/1.5,255);
-        else if (pos-i > 0) leds[pos-i] = CHSV(gHue+rx,gSat/1.5,255);
+  if (toggle_sync == 2){
+    for (int i = 1; i < 3; i++){
+      for (int j = 0; j < num_leds_strip; j++){
+        int pos = FlipPosition((i*48)+j);
+        int lookAtPt = FlipPosition(j);
+        leds[pos] = leds[lookAtPt];
       }
     }
-    leds[pos_b-1] = CHSV(rand_hue1, gSat/2, 200);
+  }
 
-    d_t[_ID] = t[_ID];
-
-    // reset numbers if it reached the end 
-    // sync them up when interval width is less than 5
-    int length_mapped = map(interval_width, 1, 100, 1, 55);
-    if (t[_ID] >= num_leds_strip || t[_ID] > _length-1){
-      if (interval_width <= 5){
-        for (int i = 0; i < 3; i++){
-          t[i] = 0;
-          strip_ctrl[i] = 55;
-        }
-      }
-      else {
-        t[_ID] = 0;
-        d_t[_ID] = 0;
-        strip_ctrl[_ID] = 55 - random8(length_mapped); // set next length
-      }
-    }
+  FastLED.setBrightness(gLum);
+  UpdateLEDS();
 
 }
 
+
 //////////////////////////////////////////////////
 // 3. PingCenter
+//    unidirectional pings start halfway down the strip then mirrored
 //////////////////////////////////////////////////
-void drawPingCenter(int _start_pixel, int _ID){
+void drawAgentCenter(){
   
-    int center_pixel = _start_pixel + (num_leds_strip/2);
-    int a = 104-anim_speed;
-    float ping_spd = (float)2/a;
+  int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
+  fadeToBlackBy(leds, num_leds, max_fade_spd);
 
-    // change this so it only goes halfway...please...
-    t[_ID] += EaseIn(t[_ID], 51, ping_spd); // easing in +1 or 2 extra looks nicer imo
+  int max_pings = map(interval_width, 1, 100, 6, 12);
+  for (int i = 0; i < max_pings; i++){
+    // 23- start halfway, sync enables/disables random direction
+    ping[i].draw(leds, anim_speed, interval_width, gHue, gSat, 23, 1);
+  }
 
-    // reset numbers if it reached the end if BLAST MODE is not enabled
-    if (toggle_blastMode == 0){
-      if (t[_ID] >= 48) t[_ID] = 0;
-    }
-
-    // get position and previous position ints
-    int pos = center_pixel + ((int)t[_ID]/2);
-    int pos_b = center_pixel + ((int)d_t[_ID]/2);
-    
-    int pos_neg = center_pixel - ((int)t[_ID]/2)-1;
-    int pos_neg_b = center_pixel - ((int)d_t[_ID]/2)-1;
-
-    // Set the leading edge of the pulse
-    leds[pos] = CHSV(gHue,gSat/2,255);
-    leds[pos_neg] = CHSV(gHue,gSat/2,255);
-    
-    // light up skipped pixels
-    if (pos > pos_b) {      
-      for (int i = 1; i < pos - pos_b; i++) {
-        int rx = random8(20);
-        if (pos-i > 0) {
-          leds[pos-i] = CHSV(gHue+rx,200,255);
-          leds[pos_neg+i] = CHSV(gHue+rx,200,255);
-        }
+  // Mirroring- easy way of copying half the strip to its own other half
+  // if toggle_sync==2 we overwrite all the strips with the first strip values
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < num_leds_strip; j++){
+      if (j < 24) {
+        int pos = FlipPosition((i*48)+j);
+        int lookAtPt = FlipPosition(((i+1)*48)-j);
+        leds[pos] = leds[lookAtPt];
+      }
+      if (toggle_sync == 2 && i > 0){
+        int pos = FlipPosition((i*48)+j);
+        int lookAtPt = FlipPosition(48-j);
+        leds[pos] = leds[lookAtPt];        
       }
     }
+  }
 
-    // light up caboose pixel for color trail
-    random16_add_entropy(random());
-    int rand_hue1 = gHue + random8(10);
-    int hue2_o = (random8(5) - 5) * 2 ;
-    int rand_hue2 = rand_hue1 + hue2_o;
-    leds[pos_b-1] = CHSV(rand_hue1, gSat/2, 200);
-    leds[pos_neg_b+1] = CHSV(rand_hue2, gSat/2, 200);    
 
-    // set previous timestep to current timestep
-    d_t[_ID] = t[_ID];
-
-    fadeToBlackBy( leds + _start_pixel, num_leds_strip, 30);
+  FastLED.setBrightness(gLum);
+  UpdateLEDS();
 
 }
 
@@ -233,16 +196,16 @@ void drawNoise(){
                 noise_v_time, noise_hue_octaves, noise_hxy, h_scale, noise_hxy, h_scale, 
                 noise_hue_time, true, h_offset);
 
-  FastLED.setBrightness(gLum);
+  FastLED.setBrightness(gLum+20);
   UpdateLEDS();
 
   // adjust the intra-frame time values
-  float time_mult = map(float(anim_speed), 1, 100, .001, 2);
-  float hue_mult = map(float(gSat), 1, 255, .1, 2);
+  float time_mult = map(float(anim_speed), 1, 100, .001, 50);
+  // float hue_mult = map(float(gSat), 1, 255, .1, 2);
   noise_x += noise_x_speed;
   noise_y += noise_y_speed;
   noise_v_time += noise_time_speed * time_mult;
-  noise_hue_time += (noise_hue_speed );
+  noise_hue_time += (noise_hue_speed * time_mult);
 }
 
 //////////////////////////////////////////////////
@@ -272,7 +235,7 @@ void drawSecretMessage(bool _bang){
       pos_b = FlipPosition(pos_b);
 
       int rnd = random8(gLum/4);
-      int val = gLum-((gLum/18)*j);
+      int val = gLum-((gLum/10)*j);
       val -= rnd;
 
       leds[pos] = CHSV(0,0,val);
@@ -290,7 +253,7 @@ void drawSecretMessage(bool _bang){
             pos = map(pos, strip_start[1], strip_start[2], strip_start[2], strip_start[1]);
             pos--;
           }
-          int value = random8((gLum/2)+20, gLum+30);
+          int value = random8((gLum/2)+20, gLum);
           int hue_o = random8(8);
           hue_o = (hue_o - 6) * hue_o;
           hue_o = (i*5)+gHue+hue_o;
@@ -328,21 +291,5 @@ void drawModWave(int _ID){
   UpdateLEDS();
 }
 
-//////////////////////////////////////////////////
-// 2. Agent Ping Length
-//////////////////////////////////////////////////
-void drawAgentLength(){
 
-  int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
-  fadeToBlackBy(leds, num_leds, max_fade_spd);
-
-  int max_pings = map(interval_width, 1, 100, 3, 8);
-  for (int i = 0; i < max_pings; i++){
-    ping[i].draw(leds, anim_speed, interval_width, gHue, gSat);
-  }
-
-  FastLED.setBrightness(gLum);
-  UpdateLEDS();
-
-}
 

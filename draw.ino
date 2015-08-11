@@ -9,12 +9,15 @@ void loop()
   EVERY_N_MILLISECONDS( 50 ) {
     if (toggle_pause == 0) {
       // special case for rainbow
-      if (pattern_num == 1) gHue -= ((anim_speed+1)/20);
+      // if (pattern_num == 1) gHue -= (anim_speed/50);
+      if (pattern_num == 1) gHue--;
       // special case for ping length
       if (pattern_num == 2) gHue -= ((anim_speed+1)/30);
       // special case for ping center
       if (pattern_num == 3) gHue -= ((anim_speed+1)/10);
-      
+      // special case for mod wave
+      if (pattern_num == 6) gHue -= ((anim_speed)/30);
+
       if (pattern_num == 7) gHue -= ((anim_speed)/20);
       else gHue -= ((anim_speed+1)/2);
     }
@@ -25,7 +28,7 @@ void loop()
       pattern_num = random8(num_patterns);
       // reroll if we land on secret message 
       // if (pattern_num == 5) pattern_num -= random8(4);
-      ResetVars();
+      Preset(presetNum);
     }
     // Increment pattern
     // if (toggle_autoCycle == 2) {
@@ -53,21 +56,12 @@ void loop()
 
   // Ping length
   else if (pattern_num == 2) {
-    fadeToBlackBy(leds, num_leds, 30);
-    drawPingLength(strip_start[0], 0, strip_ctrl[0]);
-    drawPingLength(strip_start[1], 1, strip_ctrl[1]);
-    drawPingLength(strip_start[2], 2, strip_ctrl[2]);
-    FastLED.setBrightness(gLum);
-    UpdateLEDS();
+    drawAgentLength();
   }
   
   // Ping center
   else if (pattern_num == 3) {
-    drawPingCenter(strip_start[0], 0);
-    drawPingCenter(strip_start[1], 1);
-    drawPingCenter(strip_start[2], 2);
-    FastLED.setBrightness(gLum);    
-    UpdateLEDS();
+    drawAgentCenter();
   }
 
   // Noise
@@ -83,10 +77,6 @@ void loop()
   else if (pattern_num == 6){
     drawModWave(0);
     fadeToBlackBy(leds, num_leds, 60);
-  }
-
-  else if (pattern_num == 7){
-    drawAgentLength();
   }
 
 }

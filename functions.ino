@@ -16,19 +16,23 @@ void UpdateLEDS(){
 void Preset(int _num){
   // low/chill
   if (_num == 0){
-    gLum = 50;
-    gSat = 220;
-    anim_speed = 10;
-    interval_width = 10;
-    ResetVars();
+    gHue = 0;
+    gLum = 30;
+    presetNum = 0;
+    gSat = random8(180,225);
+    anim_speed = random8(1,40);
+    interval_width = random8(1,40);
+    toggle_sync = uint8_t(3);
   }
   // high/woah
   if (_num == 1){
-    gLum = 235;
-    gSat = 255;
-    anim_speed = 95;
-    interval_width = 90;
-    ResetVars();
+    gHue = 0;
+    gLum = 225;
+    presetNum = 1;
+    gSat = random8(180,225);
+    anim_speed = random8(30,100);
+    interval_width = random8(10,100);
+    toggle_sync = uint8_t(3);
   }
 }
 
@@ -36,12 +40,12 @@ void Preset(int _num){
 // Reset Vars
 //////////////////////////////////////////////////
 void ResetVars(){
-  for (int i = 0; i < 3; i++){
-    t[i] = 0;
-    d_t[i] = 0;
-    strip_ctrl[i] = 55;
-    rand_message_interval = 30000;
-  }
+  gHue = 0;
+  // for (int i = 0; i < 3; i++){
+    // t[i] = 0;
+    // d_t[i] = 0;
+    // strip_ctrl[i] = 55;
+  // }
 }
 
 //////////////////////////////////////////////////
@@ -83,11 +87,12 @@ int FlipPosition(int _var){
   return output;
 }
 
-int CheckDirection(int _pos){
-  if (_pos >= strip_start[1] && _pos < strip_start[2]) {
-    return -1;
+int CheckStripNum(int _pos){
+  if (_pos < 48) return 0;
+  else if (_pos >= strip_start[1] && _pos < strip_start[2]) {
+    return 1;
   }
-  else return 1;
+  else return 2;
 }
 
 // void BlendHue(){
