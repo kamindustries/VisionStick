@@ -14,6 +14,8 @@ void loop()
       if (pattern_num == 2) gHue -= ((anim_speed+1)/30);
       // special case for ping center
       if (pattern_num == 3) gHue -= ((anim_speed+1)/10);
+      
+      if (pattern_num == 7) gHue -= ((anim_speed)/20);
       else gHue -= ((anim_speed+1)/2);
     }
   }
@@ -86,7 +88,7 @@ void loop()
 
   else if (pattern_num == 7){
     fadeToBlackBy(leds, num_leds, 40);
-    drawAgentLength(0);
+    drawAgentLength();
     FastLED.setBrightness(gLum);
     UpdateLEDS();
   }

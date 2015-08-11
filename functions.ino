@@ -82,3 +82,25 @@ int FlipPosition(int _var){
   }
   return output;
 }
+
+int CheckDirection(int _pos){
+  if (_pos >= strip_start[1] && _pos < strip_start[2]) {
+    return -1;
+  }
+  else return 1;
+}
+
+// void BlendHue(){
+//   for (int i = 1; i < num_leds-1; i++){
+//     int pos = FlipPosition(i);
+//     int dir = CheckDirection(pos);
+//     int diff = ((-2*leds_hsv[i].h)%255) + leds_hsv[i+dir].h + leds_hsv[i+dir].h;
+//     diff /= 2;
+//     diff = ((diff+leds_hsv[i].h)%255);
+    
+//     leds_hsv[pos].h = diff;
+//     CRGB rgb;
+//     hsv2rgb_rainbow(leds_hsv[pos], rgb);
+//     leds[pos] = rgb;
+//   }
+// }

@@ -18,7 +18,7 @@
 const uint8_t num_leds = 144;
 const uint8_t num_leds_strip = 48;
 CRGB leds[num_leds];
-CRGBPalette16 gPal;
+Agent ping[10];
 
 uint8_t gLum = 96;
 uint8_t gSat = 255;
@@ -81,7 +81,6 @@ Button button6 = Button(5, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button7 = Button(4, BUTTON_PULLUP_INTERNAL, true, 80);
 Button button8 = Button(3, BUTTON_PULLUP_INTERNAL, true, 80);
 
-Agent ping[10];
 
 //////////////////////////////////////////////////
 // S E T U P
@@ -102,6 +101,11 @@ void setup() {
     t[i] = 0;
     d_t[i] = 0;
   }
+
+  for (int i = 0; i < 10; i++){
+    ping[i].ID = i;
+  }
+
 
   // NOISE STUFF
   // initialize the x/y and time values

@@ -324,15 +324,10 @@ void drawModWave(int _ID){
 //////////////////////////////////////////////////
 // 2. Agent Ping Length
 //////////////////////////////////////////////////
-void drawAgentLength(int id){
+void drawAgentLength(){
 
-  for (int i = 0; i < 2; i++){
-    ping[i].animate(anim_speed, interval_width);
-    int pos = ping[i].getPos();
-    int val = ping[i].getValue();
-    float vel = ping[i].getVelocity();
-    val = 255-val;
-    leds[pos] = CHSV(gHue,gSat/2,val);
+  for (int i = 0; i < 3; i++){
+    ping[i].draw(leds, anim_speed, interval_width, gHue, gSat);
   }
 
 ///
