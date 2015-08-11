@@ -20,7 +20,6 @@ void loop()
     }
   }
   EVERY_N_MILLISECONDS(20000) {
-    random16_add_entropy(random());
     // Random pattern
     if (toggle_autoCycle == 1) {
       pattern_num = random8(num_patterns);
@@ -87,10 +86,7 @@ void loop()
   }
 
   else if (pattern_num == 7){
-    fadeToBlackBy(leds, num_leds, 40);
     drawAgentLength();
-    FastLED.setBrightness(gLum);
-    UpdateLEDS();
   }
 
 }

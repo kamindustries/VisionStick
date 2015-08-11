@@ -17,8 +17,9 @@
 
 const uint8_t num_leds = 144;
 const uint8_t num_leds_strip = 48;
+const uint8_t num_pings = 8;
 CRGB leds[num_leds];
-Agent ping[10];
+Agent ping[num_pings];
 
 uint8_t gLum = 96;
 uint8_t gSat = 255;
@@ -102,7 +103,7 @@ void setup() {
     d_t[i] = 0;
   }
 
-  for (int i = 0; i < 10; i++){
+  for (int i = 0; i < num_pings; i++){
     ping[i].ID = i;
   }
 

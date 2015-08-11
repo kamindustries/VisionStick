@@ -31,8 +31,7 @@ Agent::Agent(){
     d_pos = 0;
     dir = 1;
     hue_offset = random8();
-    if (ID < 3) stripNum = ID;
-    else stripNum = random8(3);
+    stripNum = random8(2);
 }  
 
 Agent::Agent(int _start_pos, int _end_pos, float _speed){
@@ -74,37 +73,38 @@ void Agent::drawPing(CRGB _leds[], int _gHue, int _gSat){
     int hue = _gHue + hue_offset;
     int lum = getValue();
     int sat = _gSat/2;
-    int diff = abs(t - (dt * dir));
 
     _leds[pos] = CHSV(hue, sat, lum);
+
     // now do the tail
-    // if (diff > 0) {      
-    //   for (int i = 0; i < diff; i++) {
-    //     int rx = (2*(random8(10) - 10))+1;
-    //     int tail_hue = hue + rx + i;
-    //     int tail_pos = pos-dir-(i*dir);
+    int diff = int(t) - int(dt);
+    if (dir == -1) diff = int(dt) - int(t);
+    if (diff > 0) {      
+      for (int i = 1; i <= diff; i++) {
+        int tail_pos = pos-(i*dir);
+        if (strip2) tail_pos = pos+(i*dir);  
+        // tail_pos = FixPosition(tail_pos);
+        // int tail_pos = int(t)-(i*dir)+(stripNum*48);
+        // if (strip2) tail_pos = int(t)+(i*dir)+(stripNum*48);  
 
-    //     // tail_pos = FixPosition(tail_pos);
-    //     // // check for serpentine
-    //     if (checkSerpentine(pos)) {  
-    //       tail_pos = pos+dir-(i*-dir);
-    //     }
+        int rnd_hue = (2*(random8(10) - 10))+1;
+        int tail_hue = hue + rnd_hue + i;
 
-    //     // assign the tail color
-    //     if (tail_pos >= 0 && tail_pos < 144) {
-    //       _leds[tail_pos] = CHSV(tail_hue, sat, lum);
-    //     }
+        // assign the tail color
+        if (tail_pos >= 0 && tail_pos < 144) {
+          _leds[tail_pos] = CHSV(tail_hue, sat, lum);
+        }
 
-    //   }
-    // }
+      }
+    }
 
-    int rand_hue = _gHue + random8(5);
+    int rand_hue = hue + random8(25);
 
     // little trail tip extra
-    // int temp_dir = dir;
-    // if (strip2) temp_dir *= -1;
-    // if (temp_dir == 1) _leds[d_pos-1] = CHSV(rand_hue, _gSat/2, lum);
-    // else _leds[d_pos+1] = CHSV(rand_hue, _gSat/2, lum);
+    // int forward = dir;
+    // if (strip2) forward *= -1;
+    // if (dir == 1) _leds[d_pos-forward] = CHSV(rand_hue, _gSat/2, lum);
+    // else _leds[d_pos+forward] = CHSV(rand_hue, _gSat/2, lum);
     
 }
 
@@ -130,19 +130,22 @@ bool Agent::checkSerpentine(int _pos){
 void Agent::Reset(int _interval_width){
     random16_add_entropy(random());
 
+    int min_length = map(_interval_width, 1, 100, 1, 30);
     // pick direction and start/end pos
     if (random(255)<128) {
+    // if (random8(255) > 0) {  //always true
       start_pos = 0;
-      end_pos = random8(10,55);
+      end_pos = random8(48-min_length,55);
       dir = 1;
     }
     else {
       start_pos = 48;
-      end_pos = 48 - random8(5, 48) - 5;
+      end_pos = 48 - random8(min_length, 55);
       dir = -1;
     }
-    if (ID < 3) stripNum = ID;
-    else stripNum = random8(3);
+    // if (ID < 3) stripNum = ID;
+    // else stripNum = random8(3);
+    stripNum = ID%3;
 
     t = start_pos;
     dt = start_pos;
@@ -160,11 +163,11 @@ int Agent::getValue(){
     int val;
     if (dir == 1){
       val = abs(int(t) - start_pos);
-      val = 255 - map(val, 0, end_pos-1, 1, 255);
+      val = 255 - map(val, 0, end_pos-1, 1, 128);
     }
     else {
       val = abs(start_pos - int(t));
-      val = 255 - map(val, 0, start_pos+1, 1, 255);
+      val = 255 - map(val, 0, start_pos+1, 1, 128);
     }
     return val;
 }

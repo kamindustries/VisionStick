@@ -39,17 +39,18 @@ void drawFlash(){
 //////////////////////////////////////////////////
 void drawConfetti(int _start_pixel) {
  
+    int max_fade_spd = map(interval_width, 1, 100, 2, 60);
     fadeToBlackBy(leds, num_leds, 2);
 
     EVERY_N_MILLISECONDS( 100 ) {
-      int num_confetti = 2 + (interval_width/5);
+      int num_confetti = 3 + (interval_width/15);
       for (int i = 0; i < num_confetti; i++){
         random16_add_entropy(random());
         int pos = random16(num_leds);
         int hue = gHue + random8(64);
-        float sat = random8(128) + (gSat/2);
+        float sat = random8(40, gSat);
 
-        leds[pos + _start_pixel] += CHSV(hue, sat, random8(225)+30);
+        leds[pos + _start_pixel] += CHSV(hue, sat, random8(30, 200));
       }
     }
     FastLED.setBrightness(gLum);
@@ -57,6 +58,7 @@ void drawConfetti(int _start_pixel) {
     // bang a random secret message
     EVERY_N_MILLISECONDS(rand_message_interval){
       drawSecretMessage(true);
+      FastLED.setBrightness(255);
       UpdateLEDS();
       FastLED.delay(60);
       // fade out
@@ -65,9 +67,10 @@ void drawConfetti(int _start_pixel) {
         UpdateLEDS();
       }
       drawSecretMessage(true);
+      FastLED.setBrightness(255);
       UpdateLEDS();
-      FastLED.delay(600);
-      rand_message_interval = random16(30000, 120000);
+      FastLED.delay(500);
+      rand_message_interval = random16(60000, 120000);
     }
 }
 
@@ -78,13 +81,17 @@ void drawRainbow(int _start_pixel) {
   float wave = sin((float)gHue/255);
   wave *= 5;
   wave *= (float)(anim_speed/100);
+  float width_f = map(float(interval_width), 1, 100, 0., 1.);
 
     for (int i = 0; i < num_leds; i++){
       int pos = i + _start_pixel;
       float width = map(float(interval_width), 0, 100, .01, 6.);
 
+      // int hue_offset = random8(i * width_f);
+      int hue_offset = random8(60 * width_f);
+
       int hue = map(i, 0, num_leds, 0, 255);
-      hue = (hue * (width+wave)) + gHue;
+      hue = (hue * (width+wave)) + gHue + hue_offset;
       uint8_t sat_wave = cubicwave8(i + (gHue/width));
       uint8_t sat = gSat - (cubicwave8(((i) * (width+sat_wave)) + gHue)/3);
 
@@ -326,67 +333,16 @@ void drawModWave(int _ID){
 //////////////////////////////////////////////////
 void drawAgentLength(){
 
-  for (int i = 0; i < 3; i++){
+  int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
+  fadeToBlackBy(leds, num_leds, max_fade_spd);
+
+  int max_pings = map(interval_width, 1, 100, 3, 8);
+  for (int i = 0; i < max_pings; i++){
     ping[i].draw(leds, anim_speed, interval_width, gHue, gSat);
   }
 
-///
-
-    // float s = (float)2/(104-anim_speed);
-    // if (s > .08) s = .08;  // have to clamp the value...why?
-    // t[_ID] += EaseIn(t[_ID], _length, s); // easing in +1 or 2 extra looks nicer imo
-    
-    // int pos = _start_pixel + int(t[_ID]);
-    // int pos_b = _start_pixel + int(d_t[_ID]);
-    // int dif = pos - pos_b;
-
-    // // reverse for strip 2
-    // pos = FlipPosition(pos);
-    // pos_b = FlipPosition(pos_b);
-    // if (_ID == 1) dif = pos_b - pos;
-
-    // // set leading pixel
-    // leds[pos] = CHSV(gHue,gSat/2,255);
-    
-///
-
-    // random16_add_entropy(random());
-    // int rand_hue1 = gHue + random8(10);
-
-    // if (dif > 0) {      // light up skipped pixels
-    //   for (int i = 0; i < dif; i++) {
-    //     int rx = random8(20);
-    //     if (_ID==1) leds[pos+i] = CHSV(gHue+rx,gSat/1.5,255);
-    //     else if (pos-i > 0) leds[pos-i] = CHSV(gHue+rx,gSat/1.5,255);
-    //   }
-    // }
-    // leds[pos_b-1] = CHSV(rand_hue1, gSat/2, 200);
-
-    // d_t[_ID] = t[_ID];
-
-    // // reset numbers if it reached the end 
-    // // sync them up when interval width is less than 5
-    // int length_mapped = map(interval_width, 1, 100, 1, 55);
-    // if (t[_ID] >= num_leds_strip || t[_ID] > _length-1){
-    //   if (interval_width <= 5){
-    //     for (int i = 0; i < 3; i++){
-    //       t[i] = 0;
-    //       strip_ctrl[i] = 55;
-    //     }
-    //   }
-    //   else {
-    //     t[_ID] = 0;
-    //     d_t[_ID] = 0;
-    //     strip_ctrl[_ID] = 55 - random8(length_mapped); // set next length
-    //   }
-    // }
+  FastLED.setBrightness(gLum);
+  UpdateLEDS();
 
 }
-
-//////////////////////////////////////////////////
-// Rain
-//////////////////////////////////////////////////
-// void drawRain(){
-  
-// }
 
