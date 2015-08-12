@@ -17,7 +17,7 @@
 
 const uint8_t num_leds = 144;
 const uint8_t num_leds_strip = 48;
-const uint8_t num_pings = 7;
+const uint8_t num_pings = 12;
 CRGB leds[num_leds];
 Agent ping[num_pings];
 
@@ -35,6 +35,7 @@ uint8_t toggle_autoCycle = 0;
 uint8_t toggle_blastMode = 0;
 uint8_t toggle_sync = 0;
 uint8_t presetNum = 0;
+int shootBlast = 0;
 
 int pattern_num = 0;
 uint8_t num_patterns = 7;

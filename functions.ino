@@ -16,7 +16,7 @@ void UpdateLEDS(){
 void Preset(int _num){
   // low/chill
   if (_num == 0){
-    gHue = 0;
+    gHue += gHue*-2;
     gLum = 30;
     presetNum = 0;
     gSat = random8(180,225);
@@ -26,7 +26,7 @@ void Preset(int _num){
   }
   // high/woah
   if (_num == 1){
-    gHue = 0;
+    gHue += gHue*-2;
     gLum = 225;
     presetNum = 1;
     gSat = random8(180,225);

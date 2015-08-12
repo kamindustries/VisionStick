@@ -113,20 +113,46 @@ void drawAgentLength(){
   int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
   fadeToBlackBy(leds, num_leds, max_fade_spd);
 
-  int max_pings = map(interval_width, 1, 100, 3, 8);
-  for (int i = 0; i < max_pings; i++){
-    ping[i].draw(leds, anim_speed, interval_width, gHue, gSat, -1, toggle_sync);
-  }
+  if (toggle_blastMode == 0){
+    int max_pings = map(interval_width, 1, 100, 3, 8);
+    for (int i = 0; i < max_pings; i++){
+      ping[i].draw(leds, anim_speed, interval_width, gHue, gSat, -1, toggle_sync);
+    }
 
-  if (toggle_sync == 2){
-    for (int i = 1; i < 3; i++){
-      for (int j = 0; j < num_leds_strip; j++){
-        int pos = FlipPosition((i*48)+j);
-        int lookAtPt = FlipPosition(j);
-        leds[pos] = leds[lookAtPt];
+    if (toggle_sync == 2){
+      for (int i = 1; i < 3; i++){
+        for (int j = 0; j < num_leds_strip; j++){
+          int pos = FlipPosition((i*48)+j);
+          int lookAtPt = FlipPosition(j);
+          leds[pos] = leds[lookAtPt];
+        }
       }
     }
   }
+  
+  // blast mode engage
+  else {
+    if (shootBlast > 0){
+      int check_done = 0;
+      for (int i = 0; i < shootBlast*3; i++){
+        if (ping[i].done == true) check_done++;
+      }
+      if (check_done/3 >= shootBlast) {
+        shootBlast--;
+        if (shootBlast <= 0) {
+          shootBlast = 0;
+        }
+      }
+    }
+    if (shootBlast > 0){
+      for (int i = 0; i < shootBlast*3; i++){
+        ping[i].drawBlast(leds, anim_speed, interval_width, gHue, gSat, -1, 1);
+        if(ping[i].done == false) ping[i].checkIfDoneBlast();
+      }
+
+    }
+  }
+  // end blast mode
 
   FastLED.setBrightness(gLum);
   UpdateLEDS();
@@ -237,6 +263,8 @@ void drawSecretMessage(bool _bang){
       int rnd = random8(gLum/4);
       int val = gLum-((gLum/10)*j);
       val -= rnd;
+      if (val < 0) val = 0;
+      if (val > 255) val = 255;
 
       leds[pos] = CHSV(0,0,val);
       leds[pos_b] = CHSV(0,0,val);

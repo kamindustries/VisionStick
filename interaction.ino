@@ -1,52 +1,42 @@
 void Interaction(){
 
-//Pattern up
+// Pattern up
+// goes up or down when not in blast mode
+// when in blast mode, button 1 fires a shot. holding button 2 advances 1 pattern 
   if(button1.uniquePress()){ 
     if ((!button2.isPressed() && toggle_blastMode == 0) || 
-        (button2.isPressed() && toggle_blastMode == 1) ||
-        (!button2.isPressed() && toggle_autoCycle == 0)){
+        (button2.isPressed() && toggle_blastMode == 1)){
       pattern_num++;
       if (pattern_num > num_patterns-1) pattern_num = 0;
       ResetVars();
     }
     // Pattern down
-    else if (button2.isPressed() && toggle_autoCycle == 0){
+    else if (button2.isPressed() && toggle_blastMode == 0){
       pattern_num--;
       if (pattern_num < 0) pattern_num = num_patterns-1;
       ResetVars();
     }
-    // Blast mode
-    // else if (toggle_blastMode == 1){
-    //   ResetVars();
-    // }
-  }
-  // toggle auto switching or blast mode
-  if (button1.held(1800)){
-    if (!button2.isPressed()) {
-      if (toggle_autoCycle == 0){
-        toggle_autoCycle++;
-        drawFlash();
+    else if (!button2.isPressed() && toggle_blastMode == 1){
+      shootBlast++;
+      if (shootBlast > 4) shootBlast = 4;
+      for (int i = 0; i < shootBlast*3; i++){
+        // for (int j = 1; j <= shootBlast; j++){
+          if (ping[i].done==true) ping[i].ResetPair(interval_width, -1);
+        // }
       }
-      else if (toggle_autoCycle == 1){
-        toggle_autoCycle = 0;
-        drawFlash(CRGB(255,0,0));
-      }
-      // else if (toggle_autoCycle == 2){
-      //   toggle_autoCycle = 0;
-      //   drawFlash(CRGB(255,0,0));
-      // }
     }
-    // blast mode
-    // else if (button2.isPressed()){
-    //   if (toggle_blastMode == 0) {
-    //     toggle_blastMode = 1;
-    //     drawFlash(CRGB(0,255,0));
-    //   }
-    //   else {
-    //     toggle_blastMode = 0;
-    //     drawFlash(CRGB(40,40,40));
-    //   }
-    // }
+  }
+
+// Toggle auto switching
+  if (button1.held(1800) && button2.isPressed() && toggle_blastMode == 0){
+    if (toggle_autoCycle == 0){
+      toggle_autoCycle++;
+      drawFlash();
+    }
+    else if (toggle_autoCycle == 1){
+      toggle_autoCycle = 0;
+      drawFlash(CRGB(255,0,0));
+    }
   }
 
 // Down in brightness or chroma
@@ -91,7 +81,14 @@ void Interaction(){
   }
   if (button6.held(2200) && button2.isPressed()){
     // blast mode goes here
-    drawFlash(CRGB(0,255,0));
+    if (toggle_blastMode == 0) {
+      toggle_blastMode = 1;
+      drawFlash(CRGB(0,255,0));
+    }
+    else {
+      toggle_blastMode = 0;
+      drawFlash(CRGB(255,40,0));
+    }
   }
 
 // Speed down
