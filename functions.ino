@@ -17,7 +17,6 @@ void Preset(int _num){
   // low/chill
   if (_num == 0){
     gHue += gHue*-2;
-    gLum = 30;
     presetNum = 0;
     gSat = random8(180,225);
     anim_speed = random8(1,40);
@@ -27,7 +26,6 @@ void Preset(int _num){
   // high/woah
   if (_num == 1){
     gHue += gHue*-2;
-    gLum = 225;
     presetNum = 1;
     gSat = random8(180,225);
     anim_speed = random8(30,100);
@@ -36,17 +34,6 @@ void Preset(int _num){
   }
 }
 
-//////////////////////////////////////////////////
-// Reset Vars
-//////////////////////////////////////////////////
-void ResetVars(){
-  gHue = 0;
-  // for (int i = 0; i < 3; i++){
-    // t[i] = 0;
-    // d_t[i] = 0;
-    // strip_ctrl[i] = 55;
-  // }
-}
 
 //////////////////////////////////////////////////
 // Ease In

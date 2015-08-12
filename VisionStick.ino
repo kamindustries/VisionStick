@@ -17,7 +17,7 @@
 
 const uint8_t num_leds = 144;
 const uint8_t num_leds_strip = 48;
-const uint8_t num_pings = 12;
+const uint8_t num_pings = 20;
 CRGB leds[num_leds];
 Agent ping[num_pings];
 
@@ -36,6 +36,7 @@ uint8_t toggle_blastMode = 0;
 uint8_t toggle_sync = 0;
 uint8_t presetNum = 0;
 int shootBlast = 0;
+int turbo = 0;
 
 int pattern_num = 0;
 uint8_t num_patterns = 7;
@@ -55,7 +56,7 @@ uint32_t noise_x,noise_y,noise_v_time,noise_hue_time,noise_hxy;
 // have!  More octaves will make things slower.
 // how many octaves to use for the brightness and hue functions
 uint8_t noise_octaves=2;
-uint8_t noise_hue_octaves=4;
+uint8_t noise_hue_octaves=2;
 
 // the 'distance' between points on the x and y axis
 int noise_yscale=57771;

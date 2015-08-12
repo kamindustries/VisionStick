@@ -32,17 +32,58 @@ void drawFlash(){
   FastLED.delay(150);
 }
 
+void drawFlash(CHSV Cd){
+  CRGB rgb;
+  hsv2rgb_rainbow(Cd, rgb);
+  drawFlash(rgb);
+}
 
+void drawFlashFade(CHSV Cd){
+  for (int i = 0; i < num_leds; i++){
+    leds[i] = CRGB(0,0,0);
+  }
+  FastLED.show();
+  FastLED.delay(150);
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < 48; j++){
+      CHSV Cd_o = Cd;
+      Cd_o.v = 255-(j*5);
+      int pos = FlipPosition((i*48)+j);
+      leds[pos] = Cd_o;
+    }
+  }
+  FastLED.show();
+  FastLED.delay(150);
+}
+
+// flames based off turbo thing
+void drawTurboFlames(int _strength){
+  int flame_extra = 0;
+  if (_strength == 4) flame_extra = 8;
+  int flame_length = random8(1,10 + (_strength*3) + flame_extra);
+  for (int i = 0; i < flame_length; i++){
+    for (int j = 0; j < 3; j++){
+      int pos = FlipPosition(i+strip_start[j]);
+
+      int flame_lum = random8(45*_strength, 63*_strength);
+      int flame_hue_o = random8(_strength, _strength*3);
+
+      leds[pos] = CHSV(random8(75-flame_hue_o,95+flame_hue_o), random8(128,220), flame_lum);
+    }
+  }
+}
 
 //////////////////////////////////////////////////
 // 0. Confetti
 //////////////////////////////////////////////////
-void drawConfetti(int _start_pixel) {
+void drawConfetti(int _start_pixel, bool _bang) {
  
     int max_fade_spd = map(interval_width, 1, 100, 2, 60);
     fadeToBlackBy(leds, num_leds, 2);
+    int update_time = 100;
+    if (_bang) update_time = 0;
 
-    EVERY_N_MILLISECONDS( 100 ) {
+    EVERY_N_MILLISECONDS( update_time ) {
       int num_confetti = 3 + (interval_width/15);
       for (int i = 0; i < num_confetti; i++){
         random16_add_entropy(random());
@@ -80,7 +121,7 @@ void drawConfetti(int _start_pixel) {
 void drawRainbow(int _start_pixel) {
 
   float freq = float(interval_width)/100.;
-  float max_spd = map(freq, .01, 1., .01, .9);
+  float max_spd = map(freq, .01, 1., .01, .3);
   max_spd = 1.-max_spd;
   float spd = (float(anim_speed)/1000.) * max_spd;
   float wave = sin((float(gHue)/255.) + (float(gHue)*spd));
@@ -90,19 +131,19 @@ void drawRainbow(int _start_pixel) {
   broad_spd *= 0.02;
   float broad_wave = sin(freq + (float(gHue)*broad_spd));
 
-    for (int i = 0; i < num_leds; i++){
-      int pos = i + _start_pixel;
+  for (int i = 0; i < num_leds; i++){
+    int pos = i + _start_pixel;
 
-      float i_f = float(i);
-      float hue = (sin((i_f * freq * 0.5 * broad_wave) - (float(gHue)*spd))+1.)*128.;
-      float sat = (sin(((i_f+92) * freq * 2.2 * broad_wave) - (float(gHue)*spd*0.65))+1.)*gSat/2.;
-      sat += 100;
-      if (sat > 255) sat = 255;
+    float i_f = float(i);
+    float hue = (sin((i_f * freq * 0.5 * broad_wave) - (float(gHue)*spd))+1.)*128.;
+    float sat = (sin(((i_f+92) * freq * 2.2 * broad_wave) - (float(gHue)*spd*0.65))+1.)*gSat/2.;
+    sat += 100;
+    if (sat > 255) sat = 255;
 
-      pos = FlipPosition(pos);
-      leds[pos] = CHSV(hue, sat, 255);
-    }
-    FastLED.setBrightness(gLum);
+    pos = FlipPosition(pos);
+    leds[pos] = CHSV(hue, sat, 255);
+  }
+  FastLED.setBrightness(gLum);
 }
 
 //////////////////////////////////////////////////
@@ -111,6 +152,7 @@ void drawRainbow(int _start_pixel) {
 void drawAgentLength(){
 
   int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
+  if (turbo != 0) max_fade_spd = 8;
   fadeToBlackBy(leds, num_leds, max_fade_spd);
 
   if (toggle_blastMode == 0){
@@ -132,6 +174,24 @@ void drawAgentLength(){
   
   // blast mode engage
   else {
+    // turbo flames
+    if (turbo > 0){
+      drawTurboFlames(turbo);
+    }
+
+    if (shootBlast > 0){
+      int blast_interval = interval_width + 30;
+      if (blast_interval > 100) blast_interval = 100;
+      for (int i = 0; i < (shootBlast*3)+2; i++){
+        ping[i].draw(leds, anim_speed, blast_interval, gHue, gSat, -1, 1, true);
+        if(ping[i].done == false) ping[i].checkIfDoneBlast();
+      }
+    }
+    if (turbo == -1){
+      drawConfetti(0, true);
+      EVERY_N_MILLISECONDS(2000) turbo = 0;
+    }
+
     if (shootBlast > 0){
       int check_done = 0;
       for (int i = 0; i < shootBlast*3; i++){
@@ -143,13 +203,6 @@ void drawAgentLength(){
           shootBlast = 0;
         }
       }
-    }
-    if (shootBlast > 0){
-      for (int i = 0; i < shootBlast*3; i++){
-        ping[i].drawBlast(leds, anim_speed, interval_width, gHue, gSat, -1, 1);
-        if(ping[i].done == false) ping[i].checkIfDoneBlast();
-      }
-
     }
   }
   // end blast mode
@@ -209,8 +262,9 @@ void drawNoise(){
 
   // how varied the colors are, sync these up with anim speed and interval
   // get presets to play nice
-  int h_scale = gSat;
-  int h_offset = gHue * 4;
+  int h_scale = map(interval_width, 1, 100, 128, 255);
+  int inv_offset = 12 - (anim_speed/10);
+  int h_offset = gHue * inv_offset * 5;
 
   // fill the led array 2/16-bit noise values
   // leds, width, height, serpentine, 
@@ -226,7 +280,7 @@ void drawNoise(){
   UpdateLEDS();
 
   // adjust the intra-frame time values
-  float time_mult = map(float(anim_speed), 1, 100, .001, 50);
+  float time_mult = map(float(anim_speed), 1, 100, .001, 5.);
   // float hue_mult = map(float(gSat), 1, 255, .1, 2);
   noise_x += noise_x_speed;
   noise_y += noise_y_speed;
@@ -281,7 +335,8 @@ void drawSecretMessage(bool _bang){
             pos = map(pos, strip_start[1], strip_start[2], strip_start[2], strip_start[1]);
             pos--;
           }
-          int value = random8((gLum/2)+20, gLum);
+          int value = random8((gLum/2), gLum) + 40;
+          if (value > 255) value = 255;
           int hue_o = random8(8);
           hue_o = (hue_o - 6) * hue_o;
           hue_o = (i*5)+gHue+hue_o;
@@ -313,7 +368,7 @@ void drawModWave(int _ID){
     uint8_t hue_wave = cubicwave8((pos*2) + gHue);
     uint8_t sat_wave = cubicwave8((pos*2) + (gHue/2));
     sat_wave = sat_wave - (255-gSat);
-    if (pos%abs(gHue%49) == 0) leds[i] = CHSV(hue_wave,sat_wave,255);
+    if (pos%abs(gHue%49) == 0) leds[i] = CHSV(hue_wave,sat_wave,gLum);
   }
   FastLED.setBrightness(gLum);
   UpdateLEDS();

@@ -8,27 +8,38 @@ void Interaction(){
         (button2.isPressed() && toggle_blastMode == 1)){
       pattern_num++;
       if (pattern_num > num_patterns-1) pattern_num = 0;
-      ResetVars();
     }
     // Pattern down
     else if (button2.isPressed() && toggle_blastMode == 0){
       pattern_num--;
       if (pattern_num < 0) pattern_num = num_patterns-1;
-      ResetVars();
     }
     else if (!button2.isPressed() && toggle_blastMode == 1){
       shootBlast++;
-      if (shootBlast > 4) shootBlast = 4;
+      if (shootBlast > 6) shootBlast = 6;
       for (int i = 0; i < shootBlast*3; i++){
-        // for (int j = 1; j <= shootBlast; j++){
-          if (ping[i].done==true) ping[i].ResetPair(interval_width, -1);
-        // }
+        if (ping[i].done==true) ping[i].ResetPair(interval_width, -1);
+      }
+
+      // Release the turbo!!~
+      if (turbo > 0) {
+        shootBlast = turbo;
+        if (turbo == 4) shootBlast = 6;
+        if (shootBlast > 6) shootBlast = 6;
+        anim_speed = random8(30,50 + (turbo*10));
+        interval_width = random8(40-(turbo*5),50 + (turbo*10));
+        for (int i = 0; i < (shootBlast*3)+2; i++){
+          ping[i].ResetPair(interval_width, -1);
+          ping[i].done = false;
+        }
+        if (turbo == 4) turbo = -1;
+        else turbo = 0;
       }
     }
   }
 
 // Toggle auto switching
-  if (button1.held(1800) && button2.isPressed() && toggle_blastMode == 0){
+  if (button1.held(1800) && button2.isPressed()){
     if (toggle_autoCycle == 0){
       toggle_autoCycle++;
       drawFlash();
@@ -38,12 +49,37 @@ void Interaction(){
       drawFlash(CRGB(255,0,0));
     }
   }
+  if (button1.heldFor(2000) && toggle_blastMode == 1){
+    if (turbo < 1) {
+      turbo = 1;
+      drawFlashFade(CHSV(85, 220, 128));
+    }
+    if (button1.heldFor(4000) && toggle_blastMode == 1){
+      if (turbo < 2) {
+        turbo = 2;
+        drawFlashFade(CHSV(85+30, 220, 200));
+      }
+      if (button1.heldFor(6000) && toggle_blastMode == 1){
+        if (turbo < 3){
+          turbo = 3;
+          drawFlashFade(CHSV(85+60, 220, 220));
+        }
+        if (button1.heldFor(8000) && toggle_blastMode == 1){
+          if (turbo < 4) {
+            turbo = 4;
+            drawFlashFade(CHSV(0, 0, 225));
+          }
+        }
+      }
+    }
+  }
 
 // Down in brightness or chroma
   if(button3.isPressed()){
     // toggle low preset
     if (button3.held(3000) && !button2.isPressed()){
       Preset(0);
+      gLum = 55;
       drawFlash(CRGB(40,40,40));
     }
     if (!button2.isPressed()) {
@@ -58,6 +94,7 @@ void Interaction(){
     // toggle high preset
     if (button4.held(3000) && !button2.isPressed()){
       Preset(1);
+      gLum = 230;
       drawFlash(CRGB(255,255,255));
     }
     if (!button2.isPressed()) {
@@ -79,10 +116,11 @@ void Interaction(){
       drawFlash(CRGB(5*flash_mult,100*flash_mult,80*flash_mult));
     }
   }
+// Toggle blast mode and switch to ping length
   if (button6.held(2200) && button2.isPressed()){
-    // blast mode goes here
     if (toggle_blastMode == 0) {
       toggle_blastMode = 1;
+      pattern_num = 2;
       drawFlash(CRGB(0,255,0));
     }
     else {

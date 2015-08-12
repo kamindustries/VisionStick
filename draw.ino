@@ -26,8 +26,6 @@ void loop()
     // Random pattern
     if (toggle_autoCycle == 1) {
       pattern_num = random8(num_patterns);
-      // reroll if we land on secret message 
-      // if (pattern_num == 5) pattern_num -= random8(4);
       Preset(presetNum);
     }
     // Increment pattern
@@ -44,7 +42,7 @@ void loop()
     
   // Confetti
   if (pattern_num == 0) {
-    drawConfetti(strip_start[0]);
+    drawConfetti(strip_start[0], false);
     UpdateLEDS();
   }
 
