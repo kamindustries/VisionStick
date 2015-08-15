@@ -39,7 +39,7 @@ int shootBlast = 0;
 int turbo = 0;
 
 int pattern_num = 0;
-uint8_t num_patterns = 7;
+uint8_t num_patterns = 8;
 uint8_t secret_message[27];
 int rand_message_interval = 30000;
 

@@ -77,5 +77,10 @@ void loop()
     fadeToBlackBy(leds, num_leds, 60);
   }
 
+  // Swarm
+  else if (pattern_num == 7) {
+    drawModPings();
+  }
+
 }
 

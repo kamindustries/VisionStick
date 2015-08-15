@@ -15,7 +15,7 @@ class Agent{
     bool checkIfDone();
     int checkIfDoneBlast();
     bool checkSerpentine(int _pos);
-    void Reset(int _interval_width, int _manual_start_pos);
+    void Reset(int _interval_width, int _manual_start_pos, int _manual_end_pos);
     void ResetPair(int _interval_width, int _manual_start_pos);
     float EaseIn(float _value, float _target, float _speed);
     float getVelocity();
@@ -67,7 +67,7 @@ void Agent::draw(CRGB _leds[], int _anim_speed, int _interval_width, int _gHue, 
     if (_turbo == false){
       if (checkIfDone()) {
         if (_sync > 0) ResetPair(_interval_width, _manual_start_pos);
-        else Reset(_interval_width, _manual_start_pos);
+        else Reset(_interval_width, _manual_start_pos, -1);
       }
     }
 
@@ -160,7 +160,7 @@ bool Agent::checkSerpentine(int _pos){
   else return false;
 }
 
-void Agent::Reset(int _interval_width, int _manual_start_pos){
+void Agent::Reset(int _interval_width, int _manual_start_pos, int _manual_end_pos = -1){
     random16_add_entropy(random());
 
     int min_length = map(_interval_width, 1, 100, 1, 30);
@@ -168,15 +168,17 @@ void Agent::Reset(int _interval_width, int _manual_start_pos){
     if (random(255)<128) {
       if (_manual_start_pos != -1) start_pos = _manual_start_pos;
       else start_pos = 0;
-      end_pos = random8(48-min_length,55);
-      dir = 1;
+      if (_manual_end_pos != -1) end_pos = _manual_end_pos;
+      else end_pos = random8(48-min_length,55);  
     }
     else {
       if (_manual_start_pos != -1) start_pos = _manual_start_pos;
       else start_pos = 48;
-      end_pos = 48 - random8(min_length, 55);
-      dir = -1;
+      if (_manual_end_pos != -1) end_pos = _manual_end_pos;
+      else end_pos = 48 - random8(min_length, 55);
     }
+    if (start_pos < end_pos) dir = 1;
+    else dir = -1;
 
     stripNum = ID%3;
 

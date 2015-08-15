@@ -352,7 +352,9 @@ void drawSecretMessage(bool _bang){
 
 }
 
-// A FUNKY WEIRD PATTERN
+//////////////////////////////////////////////////
+// Mod wave
+//////////////////////////////////////////////////
 void drawModWave(int _ID){
   // for (int i = 0; i <= num_leds; i++){
   //   uint8_t s = cubicwave8(abs(gHue));
@@ -374,5 +376,53 @@ void drawModWave(int _ID){
   UpdateLEDS();
 }
 
+//////////////////////////////////////////////////
+// Swarm
+//////////////////////////////////////////////////
+void drawModPings(){
+  int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
+  fadeToBlackBy(leds, num_leds, max_fade_spd);
 
+  int max_pings = map(interval_width, 1, 100, 4, 8);
+  int min_length = map(interval_width, 1, 100, 1, 30);
+  for (int i = 0; i < max_pings; i+=2){
+    if (ping[i].checkIfDone() == true) {
+      // int start_pos = random8(23,40);
+      int start_pos = (((i*max_pings)%abs(gHue))%24)+24;
+      int rand_add = random8(10, 18);
+      int hue_offset = random8();
+
+      ping[i].Reset(interval_width, start_pos, start_pos + rand_add);
+      ping[i+1].Reset(interval_width, start_pos, start_pos - rand_add);
+      ping[i].hue_offset = hue_offset;
+      ping[i+1].hue_offset = hue_offset;
+      ping[i].stripNum = 0;
+      ping[i+1].stripNum = 0;
+    }
+    ping[i].draw(leds, anim_speed, interval_width, gHue, gSat, -1, 0, true);
+    ping[i+1].draw(leds, anim_speed, interval_width, gHue, gSat, -1, 0, true);
+  }
+
+  // Mirroring- easy way of copying half the strip to its own other half
+  // if toggle_sync==2 we overwrite all the strips with the first strip values
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < num_leds_strip; j++){
+      if (j < 24) {
+        int pos = FlipPosition((i*48)+j);
+        int lookAtPt = FlipPosition(((i+1)*48)-j);
+        leds[pos] = leds[lookAtPt];
+      }
+      if (toggle_sync == 2 && i > 0){
+        int pos = FlipPosition((i*48)+j);
+        int lookAtPt = FlipPosition(48-j);
+        leds[pos] = leds[lookAtPt];        
+      }
+    }
+  }
+
+
+  FastLED.setBrightness(gLum);
+  UpdateLEDS();
+
+}
 
