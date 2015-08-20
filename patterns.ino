@@ -38,12 +38,14 @@ void drawFlash(CHSV Cd){
   drawFlash(rgb);
 }
 
-void drawFlashFade(CHSV Cd){
-  for (int i = 0; i < num_leds; i++){
-    leds[i] = CRGB(0,0,0);
+void drawFlashFade(CHSV Cd, int fade_time, bool clear_first){
+  if (clear_first){
+    for (int i = 0; i < num_leds; i++){
+      leds[i] = CRGB(0,0,0);
+    }
   }
   FastLED.show();
-  FastLED.delay(150);
+  FastLED.delay(fade_time);
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 48; j++){
       CHSV Cd_o = Cd;
@@ -53,7 +55,7 @@ void drawFlashFade(CHSV Cd){
     }
   }
   FastLED.show();
-  FastLED.delay(150);
+  FastLED.delay(fade_time);
 }
 
 // flames based off turbo thing
@@ -96,22 +98,26 @@ void drawConfetti(int _start_pixel, bool _bang) {
     }
     FastLED.setBrightness(gLum);
 
-    // bang a random secret message
-    EVERY_N_MILLISECONDS(rand_message_interval){
-      drawSecretMessage(true);
-      FastLED.setBrightness(255);
-      UpdateLEDS();
-      FastLED.delay(60);
-      // fade out
-      for (int i = 0; i < 20; i++){
-        fadeToBlackBy(leds, num_leds, 10);
+    // do a random secret message
+    if (!_bang){
+      EVERY_N_MILLISECONDS(rand_message_interval){
+        drawSecretMessage(true);
+        FastLED.setBrightness(255);
         UpdateLEDS();
+        FastLED.delay(60);
+        // fade out
+        for (int i = 0; i < 20; i++){
+          fadeToBlackBy(leds, num_leds, 10);
+          UpdateLEDS();
+        }
+        drawSecretMessage(true);
+        FastLED.setBrightness(255);
+        UpdateLEDS();
+        FastLED.delay(500);
+        int m_int = 101-interval_width;
+        m_int = map(m_int, 1, 100, 20000, 240000);
+        rand_message_interval = random16(m_int/2, m_int);
       }
-      drawSecretMessage(true);
-      FastLED.setBrightness(255);
-      UpdateLEDS();
-      FastLED.delay(500);
-      rand_message_interval = random16(60000, 120000);
     }
 }
 
@@ -121,7 +127,7 @@ void drawConfetti(int _start_pixel, bool _bang) {
 void drawRainbow(int _start_pixel) {
 
   float freq = float(interval_width)/100.;
-  float max_spd = map(freq, .01, 1., .01, .3);
+  float max_spd = map(freq, .01, 1., .008, .09);
   max_spd = 1.-max_spd;
   float spd = (float(anim_speed)/1000.) * max_spd;
   float wave = sin((float(gHue)/255.) + (float(gHue)*spd));
@@ -137,13 +143,17 @@ void drawRainbow(int _start_pixel) {
     float i_f = float(i);
     float hue = (sin((i_f * freq * 0.5 * broad_wave) - (float(gHue)*spd))+1.)*128.;
     float sat = (sin(((i_f+92) * freq * 2.2 * broad_wave) - (float(gHue)*spd*0.65))+1.)*gSat/2.;
+    float lum = (sin(((i_f+48) * freq * 3.3 * broad_wave) - (float(gHue)*spd*0.35))+1.)*gLum/2.;
     sat += 100;
     if (sat > 255) sat = 255;
+    lum += 55;
+    if (lum > 255) lum = 255;
+    if (gLum == 0) lum = 0;
 
     pos = FlipPosition(pos);
-    leds[pos] = CHSV(hue, sat, 255);
+    leds[pos] = CHSV(hue, sat, lum);
   }
-  FastLED.setBrightness(gLum);
+  // FastLED.setBrightness(gLum);
 }
 
 //////////////////////////////////////////////////
@@ -187,10 +197,7 @@ void drawAgentLength(){
         if(ping[i].done == false) ping[i].checkIfDoneBlast();
       }
     }
-    if (turbo == -1){
-      drawConfetti(0, true);
-      EVERY_N_MILLISECONDS(2000) turbo = 0;
-    }
+    if (turbo == -1) drawConfetti(0, true);
 
     if (shootBlast > 0){
       int check_done = 0;
@@ -209,7 +216,9 @@ void drawAgentLength(){
 
   FastLED.setBrightness(gLum);
   UpdateLEDS();
-
+  if (turbo == -1){
+    EVERY_N_MILLISECONDS(4000) turbo = 0;
+  }
 }
 
 
@@ -256,7 +265,7 @@ void drawAgentCenter(){
 //////////////////////////////////////////////////
 void drawNoise(){
 
-  float freq = map(float(interval_width), 1, 100, .01, 20);
+  float freq = map(float(interval_width), 1, 100, 2, 20);
   int xscale = noise_xscale * freq;
   int yscale = noise_xscale * freq;
 
@@ -276,7 +285,10 @@ void drawNoise(){
                 noise_v_time, noise_hue_octaves, noise_hxy, h_scale, noise_hxy, h_scale, 
                 noise_hue_time, true, h_offset);
 
-  FastLED.setBrightness(gLum+20);
+  int noise_lum = int(gLum) + 45;
+  if (noise_lum > 255) noise_lum = 255;
+  if (gLum == 0) noise_lum = 0;
+  FastLED.setBrightness(noise_lum);
   UpdateLEDS();
 
   // adjust the intra-frame time values
@@ -331,12 +343,11 @@ void drawSecretMessage(bool _bang){
       for (int i = 0; i < 27; i++){
         if (secret_message[i] == 1){
           int pos = i + strip_start[j] + 11;
-          if (pos >= strip_start[1] && pos < strip_start[2]) {
-            pos = map(pos, strip_start[1], strip_start[2], strip_start[2], strip_start[1]);
-            pos--;
-          }
-          int value = random8((gLum/2), gLum) + 40;
+          pos = FlipPosition(pos);
+          int value = random8(gLum/2, gLum) + 50;
           if (value > 255) value = 255;
+          if (value < 45) value = 45;
+          if (gLum == 0) value = 0;
           int hue_o = random8(8);
           hue_o = (hue_o - 6) * hue_o;
           hue_o = (i*5)+gHue+hue_o;
@@ -356,28 +367,28 @@ void drawSecretMessage(bool _bang){
 // Mod wave
 //////////////////////////////////////////////////
 void drawModWave(int _ID){
-  // for (int i = 0; i <= num_leds; i++){
-  //   uint8_t s = cubicwave8(abs(gHue));
-  //   int wave1 = cubicwave8(pow(i*2,2)+(s*10)); // (width of wave) + (oscillation speed)
-  //   int p = FlipPosition(i);
-  //   leds[p] = CHSV(p,255,wave1);
-  // }
+  int lum = map(int(gLum)+1, 1, 256, 20, 255);
+  if (gLum == 0) lum = 0;
+
   for (int i = 0; i < num_leds; i++){
     int pos = i;
     pos += random8(3);
     // pos = FlipPosition(pos);
     pos = pos % 49;
-    uint8_t hue_wave = cubicwave8((pos*2) + gHue);
+    uint8_t hue_wave = cubicwave8((pos*2) + (float(gHue)*.2));
     uint8_t sat_wave = cubicwave8((pos*2) + (gHue/2));
     sat_wave = sat_wave - (255-gSat);
-    if (pos%abs(gHue%49) == 0) leds[i] = CHSV(hue_wave,sat_wave,gLum);
+    if (pos%abs(gHue%49) == 0) leds[i] = CHSV(hue_wave,sat_wave,lum);
   }
-  FastLED.setBrightness(gLum);
+
+  // FastLED.setBrightness(lum);
   UpdateLEDS();
+  int fade_percent = (gLum+1)/10;
+  fadeToBlackBy(leds, num_leds, fade_percent);
 }
 
 //////////////////////////////////////////////////
-// Swarm
+// Mod pings
 //////////////////////////////////////////////////
 void drawModPings(){
   int max_fade_spd = map(anim_speed, 1, 100, 40, 100);
@@ -412,15 +423,13 @@ void drawModPings(){
         int lookAtPt = FlipPosition(((i+1)*48)-j);
         leds[pos] = leds[lookAtPt];
       }
-      if (toggle_sync == 2 && i > 0){
+      if (i > 0){
         int pos = FlipPosition((i*48)+j);
         int lookAtPt = FlipPosition(48-j);
         leds[pos] = leds[lookAtPt];        
       }
     }
   }
-
-
   FastLED.setBrightness(gLum);
   UpdateLEDS();
 

@@ -16,7 +16,7 @@ void loop()
       // special case for ping center
       if (pattern_num == 3) gHue -= ((anim_speed+1)/10);
       // special case for mod wave
-      if (pattern_num == 6) gHue -= ((anim_speed)/30);
+      if (pattern_num == 6) gHue -= ((anim_speed+1)/30);
 
       if (pattern_num == 7) gHue -= ((anim_speed)/20);
       else gHue -= ((anim_speed+1)/2);
@@ -74,7 +74,6 @@ void loop()
   
   else if (pattern_num == 6){
     drawModWave(0);
-    fadeToBlackBy(leds, num_leds, 60);
   }
 
   // Swarm

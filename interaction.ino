@@ -32,7 +32,12 @@ void Interaction(){
           ping[i].ResetPair(interval_width, -1);
           ping[i].done = false;
         }
-        if (turbo == 4) turbo = -1;
+        if (turbo == 4) {
+          turbo = -1;
+          interval_width = random8(75,90);
+          anim_speed = random8(75,90);
+          drawFlashFade(CHSV(random8(),random8(),255), 55, false);
+        }
         else turbo = 0;
       }
     }
@@ -42,32 +47,36 @@ void Interaction(){
   if (button1.held(1800) && button2.isPressed()){
     if (toggle_autoCycle == 0){
       toggle_autoCycle++;
+      pattern_num++;
+      if (pattern_num > num_patterns-1) pattern_num = 0;
       drawFlash();
     }
     else if (toggle_autoCycle == 1){
       toggle_autoCycle = 0;
+      pattern_num++;
+      if (pattern_num > num_patterns-1) pattern_num = 0;
       drawFlash(CRGB(255,0,0));
     }
   }
   if (button1.heldFor(2000) && toggle_blastMode == 1){
     if (turbo < 1) {
       turbo = 1;
-      drawFlashFade(CHSV(85, 220, 128));
+      drawFlashFade(CHSV(85, 220, 128), 150, true);
     }
     if (button1.heldFor(4000) && toggle_blastMode == 1){
       if (turbo < 2) {
         turbo = 2;
-        drawFlashFade(CHSV(85+30, 220, 200));
+        drawFlashFade(CHSV(85+30, 220, 200), 150, true);
       }
       if (button1.heldFor(6000) && toggle_blastMode == 1){
         if (turbo < 3){
           turbo = 3;
-          drawFlashFade(CHSV(85+60, 220, 220));
+          drawFlashFade(CHSV(85+60, 220, 220), 150, true);
         }
         if (button1.heldFor(8000) && toggle_blastMode == 1){
           if (turbo < 4) {
             turbo = 4;
-            drawFlashFade(CHSV(0, 0, 225));
+            drawFlashFade(CHSV(0, 0, 225), 150, true);
           }
         }
       }
@@ -76,33 +85,32 @@ void Interaction(){
 
 // Down in brightness or chroma
   if(button3.isPressed()){
-    // toggle low preset
-    if (button3.held(3000) && !button2.isPressed()){
-      Preset(0);
-      gLum = 55;
-      drawFlash(CRGB(40,40,40));
-    }
     if (!button2.isPressed()) {
       gLum = IncrementInt(gLum, false, 3, 1, 0, 255, 25, 235);
     }
     else gSat = IncrementInt(gSat, false, 3, 1, 1, 255, 25, 235);
   }
+  // toggle low preset
+  if (button3.held(3000) && button2.isPressed()){
+    Preset(0);
+    gLum = 55;
+    drawFlash(CRGB(40,40,40));
+  }
 
 // Up in brightness
 // Up in chroma
   if (button4.isPressed()){
-    // toggle high preset
-    if (button4.held(3000) && !button2.isPressed()){
-      Preset(1);
-      gLum = 230;
-      drawFlash(CRGB(255,255,255));
-    }
     if (!button2.isPressed()) {
       gLum = IncrementInt(gLum, true, 3, 1, 0, 255, 25, 235);
     }
     else gSat = IncrementInt(gSat, true, 3, 1, 1, 255, 25, 235);
   }
-  
+  // toggle high preset
+  if (button4.held(3000) && button2.isPressed()){
+    Preset(1);
+    gLum = 230;
+    drawFlash(CRGB(255,255,255));
+  }
   
 // Toggle hue pause
   if(button6.uniquePress()){
