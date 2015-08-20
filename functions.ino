@@ -19,9 +19,10 @@ void Preset(int _num){
     gHue += gHue*-2;
     presetNum = 0;
     gSat = random8(180,225);
-    anim_speed = random8(1,40);
-    interval_width = random8(1,40);
+    anim_speed = random8(1,30);
+    interval_width = random8(1,30);
     toggle_sync = uint8_t(3);
+    toggle_pause = 0;
   }
   // high/woah
   if (_num == 1){
@@ -31,6 +32,7 @@ void Preset(int _num){
     anim_speed = random8(30,100);
     interval_width = random8(10,100);
     toggle_sync = uint8_t(3);
+    toggle_pause = 0;
   }
 }
 
@@ -80,6 +82,10 @@ int CheckStripNum(int _pos){
     return 1;
   }
   else return 2;
+}
+
+void ClampValueGreater(int _input, int _max){
+  if (_input > _max) _input = _max;
 }
 
 // void BlendHue(){

@@ -1,3 +1,12 @@
+/* 
+  Vision Stick
+  LED staff for Burning Man
+  Kurt Kaminski, 2015
+  
+  Pattern #99 = auto cycle selection mode
+
+*/ 
+
 #include "FastLED.h"
 #include <Button.h>
 #include "Agent.h"
@@ -37,8 +46,10 @@ uint8_t toggle_sync = 0;
 uint8_t presetNum = 0;
 int shootBlast = 0;
 int turbo = 0;
+int auto_cycle_timer = 20000;
 
 int pattern_num = 0;
+int old_pattern_num = 0;
 uint8_t num_patterns = 8;
 uint8_t secret_message[27];
 int rand_message_interval = 30000;

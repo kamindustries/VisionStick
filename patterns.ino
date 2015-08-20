@@ -435,3 +435,16 @@ void drawModPings(){
 
 }
 
+//////////////////////////////////////////////////
+// Cycle timer selection
+//////////////////////////////////////////////////
+void drawAutoTimerSelection(){
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < num_leds_strip; j++){ 
+      if (j <= auto_cycle_timer/5000){
+        leds[j] = CHSV(gHue, gSat, gLum);
+      }
+      else leds[j] = CRGB(0,0,0);
+    }
+  }
+}

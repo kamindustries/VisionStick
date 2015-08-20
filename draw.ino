@@ -22,7 +22,7 @@ void loop()
       else gHue -= ((anim_speed+1)/2);
     }
   }
-  EVERY_N_MILLISECONDS(20000) {
+  EVERY_N_MILLISECONDS(auto_cycle_timer) {
     // Random pattern
     if (toggle_autoCycle == 1) {
       pattern_num = random8(num_patterns);
@@ -49,7 +49,10 @@ void loop()
   // Rainbow
   else if (pattern_num == 1){
     drawRainbow(strip_start[0]);
-    UpdateLEDS();
+    // UpdateLEDS();
+    int fps = map(interval_width, 1, 100, 120, 240);
+    FastLED.show();
+    FastLED.delay(1000/fps); 
   }
 
   // Ping length
@@ -79,6 +82,11 @@ void loop()
   // Swarm
   else if (pattern_num == 7) {
     drawModPings();
+  }
+
+  // Auto timer selection
+  else if (pattern_num == 99){
+    drawAutoTimerSelection();
   }
 
 }

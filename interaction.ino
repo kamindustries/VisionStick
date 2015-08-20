@@ -14,6 +14,8 @@ void Interaction(){
       pattern_num--;
       if (pattern_num < 0) pattern_num = num_patterns-1;
     }
+
+    // Shoot individual pings in blast mode
     else if (!button2.isPressed() && toggle_blastMode == 1){
       shootBlast++;
       if (shootBlast > 6) shootBlast = 6;
@@ -88,6 +90,12 @@ void Interaction(){
     if (!button2.isPressed()) {
       gLum = IncrementInt(gLum, false, 3, 1, 0, 255, 25, 235);
     }
+    else if (pattern_num == 99){
+      // go down by 60 sec if we're already above 60 sec
+      if (auto_cycle_timer >= 120000) auto_cycle_timer -= 60000;
+      else auto_cycle_timer -= 10000;
+      if (auto_cycle_timer < 10000) auto_cycle_timer = 10000;
+    }
     else gSat = IncrementInt(gSat, false, 3, 1, 1, 255, 25, 235);
   }
   // toggle low preset
@@ -103,6 +111,11 @@ void Interaction(){
     if (!button2.isPressed()) {
       gLum = IncrementInt(gLum, true, 3, 1, 0, 255, 25, 235);
     }
+    else if (pattern_num == 99){
+      if (auto_cycle_timer >= 60000) auto_cycle_timer += 60000;
+      else auto_cycle_timer += 10000;
+      if (auto_cycle_timer > 240000) auto_cycle_timer = 240000;
+    }
     else gSat = IncrementInt(gSat, true, 3, 1, 1, 255, 25, 235);
   }
   // toggle high preset
@@ -112,10 +125,18 @@ void Interaction(){
     drawFlash(CRGB(255,255,255));
   }
   
-// Toggle hue pause
+// Toggle hue pause, exit auto time select mode, or switch sync modes
   if(button6.uniquePress()){
     if (toggle_pause == 0) toggle_pause = 1;
     else toggle_pause = 0;
+
+    // exit auto time select mode
+    if (pattern_num == 99) {
+      pattern_num = old_pattern_num;
+      toggle_pause = 0;
+    }
+
+    // switch sync modes
     if (button2.isPressed()){
       toggle_sync++;
       if (toggle_sync > 2) toggle_sync = 0;
@@ -123,9 +144,14 @@ void Interaction(){
       int flash_mult = toggle_sync+1;
       drawFlash(CRGB(5*flash_mult,100*flash_mult,80*flash_mult));
     }
+  } 
+// enter auto time select mode
+  if (button6.held(2200) && !button2.isPressed()){
+    old_pattern_num = pattern_num;
+    pattern_num = 99;
   }
 // Toggle blast mode and switch to ping length
-  if (button6.held(2200) && button2.isPressed()){
+  else if (button6.held(2200) && button2.isPressed()){
     if (toggle_blastMode == 0) {
       toggle_blastMode = 1;
       pattern_num = 2;
