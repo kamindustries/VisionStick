@@ -46,7 +46,9 @@ uint8_t toggle_sync = 0;
 uint8_t presetNum = 0;
 int shootBlast = 0;
 int turbo = 0;
-int auto_cycle_timer = 20000;
+
+long auto_cycle_timer = 30;  // in seconds
+unsigned long previousMillis = 0;
 
 int pattern_num = 0;
 int old_pattern_num = 0;

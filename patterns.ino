@@ -88,7 +88,6 @@ void drawConfetti(int _start_pixel, bool _bang) {
     EVERY_N_MILLISECONDS( update_time ) {
       int num_confetti = 3 + (interval_width/15);
       for (int i = 0; i < num_confetti; i++){
-        random16_add_entropy(random());
         int pos = random16(num_leds);
         int hue = gHue + random8(64);
         float sat = random8(40, gSat);
@@ -145,9 +144,11 @@ void drawRainbow(int _start_pixel) {
     float sat = (sin(((i_f+92) * freq * 2.2 * broad_wave) - (float(gHue)*spd*0.65))+1.)*gSat/2.;
     float lum = (sin(((i_f+48) * freq * 3.3 * broad_wave) - (float(gHue)*spd*0.35))+1.)*gLum/2.;
     sat += 100;
-    if (sat > 255) sat = 255;
+    // if (sat > 255) sat = 255;
+    sat = ClampValueGreater(sat, 255);
     lum += 55;
-    if (lum > 255) lum = 255;
+    // if (lum > 255) lum = 255;
+    lum = ClampValueGreater(lum, 255);
     if (gLum == 0) lum = 0;
 
     pos = FlipPosition(pos);
@@ -191,7 +192,8 @@ void drawAgentLength(){
 
     if (shootBlast > 0){
       int blast_interval = interval_width + 30;
-      if (blast_interval > 100) blast_interval = 100;
+      // if (blast_interval > 100) blast_interval = 100;
+      blast_interval = ClampValueGreater(blast_interval, 100);
       for (int i = 0; i < (shootBlast*3)+2; i++){
         ping[i].draw(leds, anim_speed, blast_interval, gHue, gSat, -1, 1, true);
         if(ping[i].done == false) ping[i].checkIfDoneBlast();
@@ -206,9 +208,7 @@ void drawAgentLength(){
       }
       if (check_done/3 >= shootBlast) {
         shootBlast--;
-        if (shootBlast <= 0) {
-          shootBlast = 0;
-        }
+        if (shootBlast <= 0) shootBlast = 0;
       }
     }
   }
@@ -253,8 +253,6 @@ void drawAgentCenter(){
       }
     }
   }
-
-
   FastLED.setBrightness(gLum);
   UpdateLEDS();
 
@@ -286,7 +284,8 @@ void drawNoise(){
                 noise_hue_time, true, h_offset);
 
   int noise_lum = int(gLum) + 45;
-  if (noise_lum > 255) noise_lum = 255;
+  // if (noise_lum > 255) noise_lum = 255;
+  noise_lum = ClampValueGreater(noise_lum, 255);
   if (gLum == 0) noise_lum = 0;
   FastLED.setBrightness(noise_lum);
   UpdateLEDS();
@@ -330,7 +329,9 @@ void drawSecretMessage(bool _bang){
       int val = gLum-((gLum/10)*j);
       val -= rnd;
       if (val < 0) val = 0;
-      if (val > 255) val = 255;
+      val = ClampValueLesser(val, 0);
+      // if (val > 255) val = 255;
+      val = ClampValueGreater(val, 255);
 
       leds[pos] = CHSV(0,0,val);
       leds[pos_b] = CHSV(0,0,val);
@@ -345,16 +346,20 @@ void drawSecretMessage(bool _bang){
           int pos = i + strip_start[j] + 11;
           pos = FlipPosition(pos);
           int value = random8(gLum/2, gLum) + 50;
-          if (value > 255) value = 255;
-          if (value < 45) value = 45;
+          // if (value > 255) value = 255;
+          value = ClampValueGreater(value, 255);
+          // if (value < 45) value = 45;
+          value = ClampValueLesser(value, 45);
           if (gLum == 0) value = 0;
           int hue_o = random8(8);
           hue_o = (hue_o - 6) * hue_o;
           hue_o = (i*5)+gHue+hue_o;
           int sat_low = gSat - 75;
           int sat_high = gSat + 10;
-          if (sat_low < 1) sat_low = 1;
-          if (sat_high > 255) sat_high = 255;
+          // if (sat_low < 1) sat_low = 1;
+          sat_low = ClampValueLesser(sat_low, 1);
+          // if (sat_high > 255) sat_high = 255;
+          sat_high = ClampValueGreater(sat_high, 255);
           leds[pos] = CHSV(hue_o, random8(sat_low,sat_high), value);
         }
       }
@@ -440,11 +445,14 @@ void drawModPings(){
 //////////////////////////////////////////////////
 void drawAutoTimerSelection(){
   for (int i = 0; i < 3; i++){
-    for (int j = 0; j < num_leds_strip; j++){ 
-      if (j <= auto_cycle_timer/5000){
-        leds[j] = CHSV(gHue, gSat, gLum);
+    for (int j = 0; j < num_leds_strip; j++){
+      int pos = FlipPosition((i*48)+j);
+      if (j < auto_cycle_timer/5){
+        leds[pos] = CHSV(220-(j*2), 155+(j*2), gLum);
       }
-      else leds[j] = CRGB(0,0,0);
+      else leds[pos] = CRGB(0,0,0);
+      // leds[(i*num_leds_strip) + j] = CRGB(0,0,0);
     }
   }
+  UpdateLEDS();
 }

@@ -1,5 +1,6 @@
 void Interaction(){
 
+// BUTTON 1
 // Pattern up
 // goes up or down when not in blast mode
 // when in blast mode, button 1 fires a shot. holding button 2 advances 1 pattern 
@@ -44,7 +45,6 @@ void Interaction(){
       }
     }
   }
-
 // Toggle auto switching
   if (button1.held(1800) && button2.isPressed()){
     if (toggle_autoCycle == 0){
@@ -85,46 +85,55 @@ void Interaction(){
     }
   }
 
+// BUTTON 3: reduce brightness, saturation, cycle time, low preset
+//
+// Shorten auto cycle timer
+  if (button3.uniquePress() && pattern_num == 99){
+    // go down by 60 sec if we're already above 60 sec
+    if (auto_cycle_timer >= 120) auto_cycle_timer -= 60;
+    else auto_cycle_timer -= 10;
+    if (auto_cycle_timer < 10) auto_cycle_timer = 10;
+    // auto_cycle_timer = ClampValueLesser(auto_cycle_timer, 10);
+  }
 // Down in brightness or chroma
-  if(button3.isPressed()){
-    if (!button2.isPressed()) {
+  else if(button3.isPressed() && pattern_num != 99){
+    if (!button2.isPressed() && pattern_num != 99) {
       gLum = IncrementInt(gLum, false, 3, 1, 0, 255, 25, 235);
     }
-    else if (pattern_num == 99){
-      // go down by 60 sec if we're already above 60 sec
-      if (auto_cycle_timer >= 120000) auto_cycle_timer -= 60000;
-      else auto_cycle_timer -= 10000;
-      if (auto_cycle_timer < 10000) auto_cycle_timer = 10000;
-    }
-    else gSat = IncrementInt(gSat, false, 3, 1, 1, 255, 25, 235);
+    else if (button2.isPressed()) gSat = IncrementInt(gSat, false, 3, 1, 1, 255, 25, 235);
   }
-  // toggle low preset
-  if (button3.held(3000) && button2.isPressed()){
+// toggle low preset
+  if (button3.held(3000) && button2.isPressed() && pattern_num != 99){
     Preset(0);
     gLum = 55;
     drawFlash(CRGB(40,40,40));
   }
 
-// Up in brightness
-// Up in chroma
-  if (button4.isPressed()){
+// BUTTON 4: raise brightness, saturation, cycle time, high preset
+//
+// Lengthen auto cycle timer
+  if (button4.uniquePress() && pattern_num == 99){
+    if (auto_cycle_timer >= 60) auto_cycle_timer += 60;
+    else auto_cycle_timer += 10;
+    if (auto_cycle_timer > 240) auto_cycle_timer = 240;
+    // auto_cycle_timer = ClampValueGreater(auto_cycle_timer, 240);
+  }
+// Up in brightness or chroma
+  else if (button4.isPressed() && pattern_num != 99){
     if (!button2.isPressed()) {
       gLum = IncrementInt(gLum, true, 3, 1, 0, 255, 25, 235);
     }
-    else if (pattern_num == 99){
-      if (auto_cycle_timer >= 60000) auto_cycle_timer += 60000;
-      else auto_cycle_timer += 10000;
-      if (auto_cycle_timer > 240000) auto_cycle_timer = 240000;
-    }
-    else gSat = IncrementInt(gSat, true, 3, 1, 1, 255, 25, 235);
+    else if (button2.isPressed()) gSat = IncrementInt(gSat, true, 3, 1, 1, 255, 25, 235);
   }
-  // toggle high preset
-  if (button4.held(3000) && button2.isPressed()){
+// toggle high preset
+  if (button4.held(3000) && button2.isPressed() && pattern_num != 99){
     Preset(1);
     gLum = 230;
     drawFlash(CRGB(255,255,255));
   }
   
+// BUTTON 6: Pause, blast mode, cycle timer selection
+//
 // Toggle hue pause, exit auto time select mode, or switch sync modes
   if(button6.uniquePress()){
     if (toggle_pause == 0) toggle_pause = 1;
@@ -163,13 +172,15 @@ void Interaction(){
     }
   }
 
-// Speed down
+// BUTTON 7: lower animation speed or interval width
+//
   if(button7.isPressed()){
     if (!button2.isPressed()) anim_speed = IncrementInt(anim_speed, false, 2, 1, 1, 100, 10, 90);
     else interval_width = IncrementInt(interval_width, false, 2, 1, 1, 100, 10, 90);
   }
 
-// Speed up
+// BUTTON 8: raise animation speed or interval width
+//
   if(button8.isPressed()){
     // variable, dir, increment, safe increment, min, max, pad neg, pad pos
     if (!button2.isPressed()) anim_speed = IncrementInt(anim_speed, true, 2, 1, 1, 100, 10, 90);

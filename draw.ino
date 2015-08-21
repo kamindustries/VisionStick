@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////
 void loop()
 { 
+  unsigned long currentMillis = millis();
   Interaction();
 
   // Global periodic updates
@@ -22,23 +23,14 @@ void loop()
       else gHue -= ((anim_speed+1)/2);
     }
   }
-  EVERY_N_MILLISECONDS(auto_cycle_timer) {
-    // Random pattern
-    if (toggle_autoCycle == 1) {
+  if (toggle_autoCycle == 1) {
+    if(currentMillis - previousMillis >= auto_cycle_timer*1000) {
+      previousMillis = currentMillis;   
+      // Random pattern
       pattern_num = random8(num_patterns);
       Preset(presetNum);
     }
-    // Increment pattern
-    // if (toggle_autoCycle == 2) {
-      // pattern_num++;
-      // skip secret message
-      // if (pattern_num > num_patterns-1 || pattern_num == 5) pattern_num = 0;
-      // ResetVars();
-    // }
   }
-
-  // Add entropy to random number generator
-  random16_add_entropy( random());
     
   // Confetti
   if (pattern_num == 0) {

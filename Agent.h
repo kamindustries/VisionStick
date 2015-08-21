@@ -161,7 +161,6 @@ bool Agent::checkSerpentine(int _pos){
 }
 
 void Agent::Reset(int _interval_width, int _manual_start_pos, int _manual_end_pos = -1){
-    random16_add_entropy(random());
 
     int min_length = map(_interval_width, 1, 100, 1, 30);
     // pick direction and start/end pos
@@ -191,7 +190,6 @@ void Agent::Reset(int _interval_width, int _manual_start_pos, int _manual_end_po
 
 // Unidirectional reset
 void Agent::ResetPair(int _interval_width, int _manual_start_pos){
-    random16_add_entropy(random());
 
     int min_length = map(_interval_width, 1, 100, 1, 30);
     // same direction, gets mirrored in app

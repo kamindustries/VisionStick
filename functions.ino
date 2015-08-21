@@ -15,6 +15,7 @@ void UpdateLEDS(){
 //////////////////////////////////////////////////
 void Preset(int _num){
   // low/chill
+  random16_add_entropy( random());
   if (_num == 0){
     gHue += gHue*-2;
     presetNum = 0;
@@ -84,8 +85,14 @@ int CheckStripNum(int _pos){
   else return 2;
 }
 
-void ClampValueGreater(int _input, int _max){
-  if (_input > _max) _input = _max;
+int ClampValueGreater(int _input, int _max){
+  if (_input > _max) return _max;
+  else return _input;
+}
+
+int ClampValueLesser(int _input, int _min){
+  if (_input < _min) return _min;
+  else return _input;
 }
 
 // void BlendHue(){
